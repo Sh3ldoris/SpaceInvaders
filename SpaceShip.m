@@ -2,9 +2,12 @@ classdef SpaceShip
     %SPACESHIP Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (Access=private)
+    properties (Access=private)        
+        FIGURE_WIDTH = 700;
+        FIGURE_HEIGHT = 400;
         SHIP_W = 30; 
-        SHIP_H = 25; 
+        SHIP_H = 20; 
+        STEP = 10;
         INIT_SHAPE = [0 1 2 4 2 1 0 0; ... %x values
                  1 0 1 2 3 4 3 1];    %y values
         xScale;
@@ -24,6 +27,22 @@ classdef SpaceShip
         %Get the polynom of ship in current position
         function ship = getShip(obj)
             ship = [obj.actualShape(1,:) + obj.shipPos(1); obj.actualShape(2,:) + obj.shipPos(2)];
+        end
+
+        function obj = moveShipUp(obj) 
+            if (obj.shipPos(2) >= obj.FIGURE_HEIGHT - obj.SHIP_H)
+               obj.shipPos(2) = obj.FIGURE_HEIGHT - obj.SHIP_H;
+            else 
+                obj.shipPos(2) = obj.shipPos(2)+obj.STEP;
+            end
+        end
+
+        function obj = moveShipDown(obj) 
+            if (obj.shipPos(2) <= 0)
+               obj.shipPos(2) = 0;
+            else 
+                obj.shipPos(2) = obj.shipPos(2)-obj.STEP;
+            end
         end
     end
 end
