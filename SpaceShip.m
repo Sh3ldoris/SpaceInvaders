@@ -44,6 +44,12 @@ classdef SpaceShip
                 obj.shipPos(2) = obj.shipPos(2)-obj.STEP;
             end
         end
+
+        %Return peek of the ship
+        %Starting position [x,y] for the bullet
+        function peek = getPeek(obj)
+            peek = [obj.shipPos(1) + obj.SHIP_W; obj.shipPos(2) + (obj.SHIP_H / 2)];
+        end
     end
 end
 
