@@ -5,8 +5,8 @@ classdef SpaceShip
     properties (Access=private)        
         FIGURE_WIDTH = 700;
         FIGURE_HEIGHT = 400;
-        SHIP_W = 30; 
-        SHIP_H = 20; 
+        SHIP_W = 40; 
+        SHIP_H = 30; 
         STEP = 10;
         INIT_SHAPE = [0 1 2 4 2 1 0 0; ... %x values
                  1 0 1 2 3 4 3 1];    %y values

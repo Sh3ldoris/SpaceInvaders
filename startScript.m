@@ -11,6 +11,7 @@ function playGame
     spaceShip = SpaceShip;
     counter = 0;
     counterDifficulty = 0;
+    gameOver = false;
     fig = [];
     shipPlot = [];
     bulletsPlot = [];
@@ -31,6 +32,7 @@ function playGame
 
             set(fig, 'menubar', 'none');
             set(fig, 'Resize', 'off');
+            set(fig,'CloseRequestFcn',@win_close);
             set(fig, 'keypressfcn', @key_down);
 
             playGround = axes();
@@ -52,6 +54,16 @@ function playGame
             set(bulletsPlot, 'MarkerEdgeColor', BULLET_EDGE_COLOR);
             set(bulletsPlot, 'MarkerSize', BULLET_SIZE);
             set(bulletsPlot, 'LineStyle', 'None');
+    end
+
+    function win_close(src, event)
+        if (isa(gcbf,'ui.figure'))
+            % Convert GBT1.5 figure to a double.
+            delete(double(gcbf));
+        else
+            delete(gcbf);
+        end
+        gameOver = true;
     end
 
     function key_down(src, event)
@@ -88,6 +100,52 @@ function playGame
                'XData', currentEnemy(1,:), ...
                'YData', currentEnemy(2,:));
        end
+    end
+
+    function checkForColision
+        i = length(enemiesEz);
+        while i > 0
+            currentenemy = enemiesEz(i);
+            currentPos = currentenemy.getPosition;
+
+            %Check colision with bullets
+            j = size(bullets, 2);
+            while j > 0
+                
+                if bullets(1, j) > currentPos(1) && ...
+                   bullets(1, j) < currentPos(1) + currentenemy.getWidth && ...
+                   bullets(2, j) > currentPos(2) && ...
+                   bullets(2, j) < currentPos(2) + currentenemy.getHeight
+                    removeEnemy(currentenemy.getType, i);
+                    removeBullet(j);
+                end
+                j = j - 1;
+            end
+
+            i = i - 1;
+        end
+
+        i = length(enemiesHard);
+        while i > 0
+            currentenemy = enemiesHard(i);
+            currentPos = currentenemy.getPosition;
+
+            %Check colision with bullets
+            j = size(bullets, 2);
+            while j > 0
+                
+                if bullets(1, j) > currentPos(1) && ...
+                   bullets(1, j) < currentPos(1) + currentenemy.getWidth && ...
+                   bullets(2, j) > currentPos(2) && ...
+                   bullets(2, j) < currentPos(2) + currentenemy.getHeight
+                    removeEnemy(currentenemy.getType, i);
+                    removeBullet(j);
+                end
+                j = j - 1;
+            end
+
+            i = i - 1;
+        end
     end
 
     function moveEnemies
@@ -193,23 +251,24 @@ function playGame
     createFigure;
     createPlots;
 
-    while 1
+    while ~gameOver
+        checkForColision;
+        moveEnemies;
+        moveBullets;
         updatePlots;
 
         counter = counter + 1;
-        f = mod(counter, 10);        
+        f = mod(counter, 15);        
         if f == 0
             generateEnemy;
 
             counterDifficulty = counterDifficulty + 1;
-            d = mod(counterDifficulty, 10);
+            d = mod(counterDifficulty, 5);
             if d == 0 && enemyMode < 2
                 enemyMode = enemyMode + 1; 
             end
         end
-        
-        moveEnemies;
-        moveBullets;
+
         pause(.25);
     end
 end

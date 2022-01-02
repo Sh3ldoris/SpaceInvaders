@@ -5,19 +5,21 @@ classdef Enemy
     properties (Access=private)
         FIGURE_WIDTH = 700;
         FIGURE_HEIGHT = 400;
-        ENEMY_W = 20; 
-        ENEMY_H = 20; 
+        ENEMY_W = 30; 
+        ENEMY_H = 30; 
         STEP = 10;
         INIT_SHAPE;
         xScale;
         yScale;
         actualShape;
         enemyPos;
+        type;
     end
     
     methods
-        function obj = Enemy(shape)
+        function obj = Enemy(shape, enemyType)
             obj.INIT_SHAPE = shape;
+            obj.type = enemyType;
             obj.xScale = obj.ENEMY_W / max(obj.INIT_SHAPE(1,:));
             obj.yScale = obj.ENEMY_H / max(obj.INIT_SHAPE(2,:));
             obj.actualShape = [obj.INIT_SHAPE(1,:) .* obj.xScale; obj.INIT_SHAPE(2,:) .* obj.yScale];
@@ -37,10 +39,21 @@ classdef Enemy
             width = obj.ENEMY_W;
         end
 
+        function height = getHeight(obj)
+            height = obj.ENEMY_H;
+        end
+
+        function pos = getPosition(obj)
+            pos = obj.enemyPos;
+        end
+
         function peek = getPeek(obj)
             peek = [obj.enemyPos(1) + obj.ENEMY_W; obj.enemyPos(2) + (obj.ENEMY_H / 2)];
         end
-        
+
+        function type = getType(obj)
+            type = obj.type;
+        end
     end
 end
 

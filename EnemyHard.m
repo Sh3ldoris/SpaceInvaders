@@ -8,7 +8,7 @@ classdef EnemyHard < Enemy
     
     methods
         function obj = EnemyHard()
-            obj@Enemy([1 4 3 3 4 1 2 0 2 1;0 0 1 3 4 4 3 2 1 0]);
+            obj@Enemy([1 4 3 3 4 1 2 0 2 1;0 0 1 3 4 4 3 2 1 0], 2);
         end
         
     end
