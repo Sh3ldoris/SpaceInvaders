@@ -14,10 +14,12 @@ classdef Enemy
         actualShape;
         enemyPos;
         type;
+        life;
     end
     
     methods
-        function obj = Enemy(shape, enemyType)
+        function obj = Enemy(shape, enemyType, life)
+            obj.life = life;
             obj.INIT_SHAPE = shape;
             obj.type = enemyType;
             obj.xScale = obj.ENEMY_W / max(obj.INIT_SHAPE(1,:));
@@ -33,6 +35,14 @@ classdef Enemy
 
         function obj = move(obj) 
             obj.enemyPos(1) = obj.enemyPos(1) - obj.STEP;
+        end
+
+        function obj = shoted(obj) 
+            obj.life = obj.life - 1;
+        end
+
+        function result = isDead(obj) 
+            result = obj.life <= 0;
         end
 
         function width = getWidth(obj)

@@ -1,26 +1,37 @@
 function playGame
+    BLUE = [.3, .3, .9];
+    WHITE = [1, 1, 1];
+
     FIGURE_WIDTH = 700;
     FIGURE_HEIGHT = 400;
     SHIP_LINE_WIDTH = 2;
     BULLET_SIZE = 5;
-    AXIS_COLOR = [0, 0, 0];
-    SPACE_COLOR = [.3, .3, .9];
+    AXIS_COLOR = [.15, .15, .15];
+    SPACE_COLOR = BLUE;
     BULLET_FACE_COLOR = [.1, .7, .1];
     BULLET_EDGE_COLOR = [.1, .7, .1];
+
+    FONT = 'Courier'; %used for all text in program
+    TITLE_TEXT = 21;
+    LARGE_TEXT = 18;
+    SMALL_TEXT = 14;
         
     spaceShip = SpaceShip;
     counter = 0;
     counterDifficulty = 0;
     gameOver = false;
+    intro = true;
     fig = [];
     shipPlot = [];
     bulletsPlot = [];
     enemyPlots = [];
     enemyHardPlots = [];
+    username = [];
     enemiesEz = EnemyEz.empty;
     enemiesHard = EnemyHard.empty;
     bullets = [];
     enemyMode = 1; % 1-eazy enemies, 2-harder enem
+    score = 0;
 
 
     function createFigure
@@ -64,16 +75,24 @@ function playGame
             delete(gcbf);
         end
         gameOver = true;
+        intro = false;
     end
 
     function key_down(src, event)
+        %disp(event.Key);
         switch event.Key
             case 'uparrow',  spaceShip = spaceShip.moveShipUp;
             case 'downarrow', spaceShip = spaceShip.moveShipDown;
             case 'space'
-                newBullet = spaceShip.getPeek;
-                bullets(1, end+1) = newBullet(1);
-                bullets(2, end) = newBullet(2);
+                if intro == true
+                    intro = false;
+                else 
+                    newBullet = spaceShip.getPeek;
+                    bullets(1, end+1) = newBullet(1);
+                    bullets(2, end) = newBullet(2);
+                end
+            case 'q'
+                win_close; %% end game
         end
     end
 
@@ -102,6 +121,47 @@ function playGame
        end
     end
 
+    function showIntro
+        intro = true;
+        dText = [];
+
+        x = FIGURE_WIDTH / 2;
+        dText(1) = text(x, 330, "Space Invaders");
+        dText(2) = text(x, 220, "Ovladanie pomocou sipok (hore/dolu)");
+        dText(3) = text(x, 195, "Strelanie pomocou medzernika");
+        dText(4) = text(x, 100, "Pre zaciatok stlacte medzernik");
+        dText(5) = text(x, 75, "Pre ukoncenie stlacte q");
+        
+
+
+        for k = 1:length(dText)
+            set(dText(k), 'HorizontalAlignment', 'Center');
+            set(dText(k), 'FontName', FONT);
+
+            set(dText(k), 'FontSize',SMALL_TEXT);
+            set(dText(k), 'Color', WHITE);
+        end
+        set(dText(1), 'FontSize',TITLE_TEXT);
+        set(dText(1), 'Color', BLUE);
+        set(dText(1), 'fontweight', 'bold');
+
+        set(dText(4), 'FontSize',12);
+        set(dText(5), 'FontSize',12);
+
+        while intro && ~gameOver
+            pause(.25);
+        end
+        
+        if (~gameOver) 
+            delete(dText(:));
+        end
+    end
+
+    function requestUserName
+        username = inputdlg({'Zadajte svoje meno'}, 'Používateľské meno',[1 35], {''});
+        disp(username{1});
+    end
+
     function checkForColision
         i = length(enemiesEz);
         while i > 0
@@ -116,8 +176,11 @@ function playGame
                    bullets(1, j) < currentPos(1) + currentenemy.getWidth && ...
                    bullets(2, j) > currentPos(2) && ...
                    bullets(2, j) < currentPos(2) + currentenemy.getHeight
-                    removeEnemy(currentenemy.getType, i);
+                    %Decrease enemys life
+                    currentenemy.shoted();
+                    %removeEnemy(currentenemy.getType, i);
                     removeBullet(j);
+                    score = score + 5;
                 end
                 j = j - 1;
             end
@@ -138,14 +201,19 @@ function playGame
                    bullets(1, j) < currentPos(1) + currentenemy.getWidth && ...
                    bullets(2, j) > currentPos(2) && ...
                    bullets(2, j) < currentPos(2) + currentenemy.getHeight
-                    removeEnemy(currentenemy.getType, i);
+                    currentenemy.shoted();
+                    %removeEnemy(currentenemy.getType, i);
                     removeBullet(j);
+                    score = score + 10;
                 end
                 j = j - 1;
             end
 
             i = i - 1;
         end
+
+
+        removeDeadEnemies;
     end
 
     function moveEnemies
@@ -190,6 +258,10 @@ function playGame
             end
             i = i - 1;
         end
+    end
+
+    function removeDeadEnemies
+        
     end
 
     function generateEzEnemy
@@ -250,6 +322,8 @@ function playGame
 
     createFigure;
     createPlots;
+    requestUserName;
+    showIntro;
 
     while ~gameOver
         checkForColision;
@@ -261,7 +335,7 @@ function playGame
         f = mod(counter, 15);        
         if f == 0
             generateEnemy;
-
+            score = score + 1;
             counterDifficulty = counterDifficulty + 1;
             d = mod(counterDifficulty, 5);
             if d == 0 && enemyMode < 2
