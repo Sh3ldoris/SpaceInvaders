@@ -3,7 +3,6 @@ function playGame
     GREEN = [.1, .7, .1];
     WHITE = [1, 1, 1];
     RED = [.9, .3, .3];
-    FILL = 0.3;
 
     FIGURE_WIDTH = 700;
     FIGURE_HEIGHT = 400;
@@ -14,7 +13,7 @@ function playGame
     BULLET_FACE_COLOR = [.1, .7, .1];
     BULLET_EDGE_COLOR = [.1, .7, .1];
 
-    FONT = 'Courier'; %used for all text in program
+    FONT = 'Courier';
     TITLE_TEXT = 21;
     LARGE_TEXT = 18;
     SMALL_TEXT = 14;
@@ -31,15 +30,15 @@ function playGame
     enemyPlots = [];
     enemyHardPlots = [];
     heartPlots = [];
-    axisTitle = [];
-    username = [];
     enemiesEz = EnemyEz.empty;
     enemiesHard = EnemyHard.empty;
     bullets = [];
     enemyMode = 1; % 1-eazy enemies, 2-harder enem
     score = 0;
-    
 
+    axisTitle = [];
+    username = [];
+   
 
     function createFigure
             scrsz = get(0,'ScreenSize');
@@ -112,7 +111,38 @@ function playGame
                 end
             case 'q'
                 win_close; %% end game
+
+            case 'r'
+                if gameOver
+                    reset;
+                end
         end
+    end
+
+    function reset
+        delete(bulletsPlot);
+        delete(enemyPlots(:));
+        delete(enemyHardPlots(:));  
+        delete(heartPlots(:));
+        delete(shipPlot);
+
+        spaceShip = SpaceShip;
+        counter = 0;
+        counterDifficulty = 0;
+        gameOver = false;
+        quitGame = false;
+        shipPlot = [];
+        bulletsPlot = [];
+        enemyPlots = [];
+        enemyHardPlots = [];
+        heartPlots = [];
+        enemiesEz = EnemyEz.empty;
+        enemiesHard = EnemyHard.empty;
+        bullets = [];
+        enemyMode = 1; % 1-eazy enemies, 2-harder enem
+        score = 0;
+
+        createPlots;
     end
 
     function updatePlots
@@ -201,7 +231,8 @@ function playGame
 
         x = FIGURE_WIDTH / 2;
         dText(1) = text(x, 330, "Game Over");
-        dText(2) = text(x, 220, "Pre ukoncenie stlacte q");
+        dText(2) = text(x, 220, "Pre reset stlacte r");
+        dText(3) = text(x, 195, "Pre ukoncenie stlacte q");
 
         for k = 1:length(dText)
             set(dText(k), 'HorizontalAlignment', 'Center');
@@ -411,6 +442,9 @@ function playGame
 
     createFigure;
     createPlots;
+
+    reset;
+
     requestUserName;
     showIntro;
 
