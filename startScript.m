@@ -1,6 +1,9 @@
 function playGame
     BLUE = [.3, .3, .9];
+    GREEN = [.1, .7, .1];
     WHITE = [1, 1, 1];
+    RED = [.9, .3, .3];
+    FILL = 0.3;
 
     FIGURE_WIDTH = 700;
     FIGURE_HEIGHT = 400;
@@ -20,18 +23,22 @@ function playGame
     counter = 0;
     counterDifficulty = 0;
     gameOver = false;
+    quitGame = false;
     intro = true;
     fig = [];
     shipPlot = [];
     bulletsPlot = [];
     enemyPlots = [];
     enemyHardPlots = [];
+    heartPlots = [];
+    axisTitle = [];
     username = [];
     enemiesEz = EnemyEz.empty;
     enemiesHard = EnemyHard.empty;
     bullets = [];
     enemyMode = 1; % 1-eazy enemies, 2-harder enem
     score = 0;
+    
 
 
     function createFigure
@@ -51,7 +58,12 @@ function playGame
             axis manual;
 
             set(playGround, 'color', AXIS_COLOR, 'YTick', [], 'XTick', []);
-        
+
+            axisTitle = title('');
+            set(axisTitle, 'FontName', FONT,'FontSize', LARGE_TEXT);
+            set(axisTitle, 'Color', GREEN);
+            
+            
             hold on;
     end
 
@@ -65,6 +77,13 @@ function playGame
             set(bulletsPlot, 'MarkerEdgeColor', BULLET_EDGE_COLOR);
             set(bulletsPlot, 'MarkerSize', BULLET_SIZE);
             set(bulletsPlot, 'LineStyle', 'None');
+
+            for i = 1:spaceShip.getLifes
+                tmpPlot = plot(NaN,NaN, '-');
+                set(tmpPlot, 'LineWidth', SHIP_LINE_WIDTH);
+                set(tmpPlot, 'color', RED);
+                heartPlots(end + 1) = tmpPlot;
+            end
     end
 
     function win_close(src, event)
@@ -74,7 +93,7 @@ function playGame
         else
             delete(gcbf);
         end
-        gameOver = true;
+        quitGame = true;
         intro = false;
     end
 
@@ -119,6 +138,26 @@ function playGame
                'XData', currentEnemy(1,:), ...
                'YData', currentEnemy(2,:));
        end
+
+       for i = 1:length(heartPlots)
+           currentHeart = spaceShip.getHearthShape;
+            currentHeart(2, :) = currentHeart(2,:) + ((i - 1) * 30);
+            set(heartPlots(i), ...
+               'XData', currentHeart(1,:) + 5, ...
+               'YData', currentHeart(2,:) + 5);
+       end
+
+
+        scoreString = sprintf('score:%d', score);
+        nameString = sprintf('Username:%s', username{:});
+        set(axisTitle, 'String', [nameString, '   ', scoreString]);
+    end
+
+    function updateHealtPlot
+        while spaceShip.getLifes < length(heartPlots)
+            delete(heartPlots(end));
+            heartPlots = heartPlots(:,1:end - 1);
+        end
     end
 
     function showIntro
@@ -148,11 +187,39 @@ function playGame
         set(dText(4), 'FontSize',12);
         set(dText(5), 'FontSize',12);
 
-        while intro && ~gameOver
+        while intro && ~quitGame
             pause(.25);
         end
         
-        if (~gameOver) 
+        if (~quitGame) 
+            delete(dText(:));
+        end
+    end
+
+    function showGameOver
+        dText = [];
+
+        x = FIGURE_WIDTH / 2;
+        dText(1) = text(x, 330, "Game Over");
+        dText(2) = text(x, 220, "Pre ukoncenie stlacte q");
+
+        for k = 1:length(dText)
+            set(dText(k), 'HorizontalAlignment', 'Center');
+            set(dText(k), 'FontName', FONT);
+
+            set(dText(k), 'FontSize',SMALL_TEXT);
+            set(dText(k), 'Color', WHITE);
+        end
+
+        set(dText(1), 'FontSize',TITLE_TEXT);
+        set(dText(1), 'Color', RED);
+        set(dText(1), 'fontweight', 'bold');
+
+        while ~quitGame && gameOver
+            pause(.25);
+        end
+
+        if (~quitGame) 
             delete(dText(:));
         end
     end
@@ -177,9 +244,9 @@ function playGame
                    bullets(2, j) > currentPos(2) && ...
                    bullets(2, j) < currentPos(2) + currentenemy.getHeight
                     %Decrease enemys life
-                    currentenemy.shoted();
-                    %removeEnemy(currentenemy.getType, i);
+                    currentenemy = currentenemy.shoted();
                     removeBullet(j);
+                    enemiesEz(i) = currentenemy;
                     score = score + 5;
                 end
                 j = j - 1;
@@ -201,9 +268,9 @@ function playGame
                    bullets(1, j) < currentPos(1) + currentenemy.getWidth && ...
                    bullets(2, j) > currentPos(2) && ...
                    bullets(2, j) < currentPos(2) + currentenemy.getHeight
-                    currentenemy.shoted();
-                    %removeEnemy(currentenemy.getType, i);
+                    currentenemy = currentenemy.shoted();
                     removeBullet(j);
+                    enemiesHard(i) = currentenemy;
                     score = score + 10;
                 end
                 j = j - 1;
@@ -225,6 +292,7 @@ function playGame
             enemyX = min(currentEnemy(1,:));
             width = enemiesEz(k).getWidth;
             if enemyX < 50
+                spaceShip = spaceShip.decreaseLifes;
                 removeEnemy(1, k);
             end
 
@@ -239,6 +307,7 @@ function playGame
             enemyX = min(currentEnemy(1,:));
             width = enemiesHard(k).getWidth;
             if enemyX < 50
+                spaceShip = spaceShip.decreaseLifes;
                 removeEnemy(2, k);
             end
 
@@ -261,7 +330,25 @@ function playGame
     end
 
     function removeDeadEnemies
-        
+        i = length(enemiesEz);
+        while i > 0
+            currentenemy = enemiesEz(i);
+            if currentenemy.isDead 
+                removeEnemy(currentenemy.getType, i);
+            end
+
+            i = i - 1;
+        end
+
+        i = length(enemiesHard);
+        while i > 0
+            currentenemy = enemiesHard(i);
+            if currentenemy.isDead 
+                removeEnemy(currentenemy.getType, i);
+            end
+
+            i = i - 1;
+        end
     end
 
     function generateEzEnemy
@@ -312,6 +399,8 @@ function playGame
             case 2
                 removeHardEnemy(index);
         end
+
+        updateHealtPlot;
     end
 
     function removeBullet(index)
@@ -325,7 +414,7 @@ function playGame
     requestUserName;
     showIntro;
 
-    while ~gameOver
+    while ~quitGame
         checkForColision;
         moveEnemies;
         moveBullets;
@@ -341,6 +430,14 @@ function playGame
             if d == 0 && enemyMode < 2
                 enemyMode = enemyMode + 1; 
             end
+        end
+
+        if spaceShip.getLifes == 0
+            gameOver = true;
+        end
+
+        if gameOver
+            showGameOver;
         end
 
         pause(.25);
