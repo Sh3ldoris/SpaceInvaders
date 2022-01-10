@@ -19,10 +19,12 @@ function playGame
     SMALL_TEXT = 14;
         
     spaceShip = SpaceShip;
+    scoreFileHandler = ScoreFileHandler;
     counter = 0;
     counterDifficulty = 0;
     gameOver = false;
     quitGame = false;
+    paused = false;
     intro = true;
     fig = [];
     shipPlot = [];
@@ -116,6 +118,20 @@ function playGame
                 if gameOver
                     reset;
                 end
+
+            case 'p'
+                paused = ~paused;
+
+            case 's'
+                if paused
+                    saveGame;
+                end
+
+            case 'l'
+                if intro
+                    clear spaceShip;
+                    load("Hej.mat");
+                end
         end
     end
 
@@ -131,6 +147,7 @@ function playGame
         counterDifficulty = 0;
         gameOver = false;
         quitGame = false;
+        paused = false;
         shipPlot = [];
         bulletsPlot = [];
         enemyPlots = [];
@@ -143,6 +160,11 @@ function playGame
         score = 0;
 
         createPlots;
+    end
+
+    function saveGame
+        save("Hej.mat", "spaceShip");
+        save("Hej.mat", "score", '-append');
     end
 
     function updatePlots
@@ -251,6 +273,35 @@ function playGame
         end
 
         if (~quitGame) 
+            delete(dText(:));
+        end
+    end
+
+    function showPause
+        dText = [];
+
+        x = FIGURE_WIDTH / 2;
+        dText(1) = text(x, 330, "Paused");
+        dText(2) = text(x, 220, "Pre pokračovanie stačte p");
+        dText(3) = text(x, 195, "Pre ukoncenie stlacte q");
+
+        for k = 1:length(dText)
+            set(dText(k), 'HorizontalAlignment', 'Center');
+            set(dText(k), 'FontName', FONT);
+
+            set(dText(k), 'FontSize',SMALL_TEXT);
+            set(dText(k), 'Color', WHITE);
+        end
+
+        set(dText(1), 'FontSize',TITLE_TEXT);
+        set(dText(1), 'Color', RED);
+        set(dText(1), 'fontweight', 'bold');
+
+        while ~quitGame && paused
+            pause(.25);
+        end
+
+        if (~paused) 
             delete(dText(:));
         end
     end
@@ -474,6 +525,12 @@ function playGame
             showGameOver;
         end
 
+        if paused
+            showPause;
+        end
+
         pause(.25);
     end
+    
+    scoreFileHandler.saveScoreData(username{:}, score);
 end
