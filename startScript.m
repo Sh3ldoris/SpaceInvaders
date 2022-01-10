@@ -1,4 +1,5 @@
 function playGame
+    clear;
     BLUE = [.3, .3, .9];
     GREEN = [.1, .7, .1];
     WHITE = [1, 1, 1];
@@ -125,12 +126,12 @@ function playGame
             case 's'
                 if paused
                     saveGame;
+                    win_close; %% end game
                 end
 
             case 'l'
                 if intro
-                    clear spaceShip;
-                    load("Hej.mat");
+                    loadGame;
                 end
 
             case 'v'
@@ -167,9 +168,60 @@ function playGame
         createPlots;
     end
 
+    function loadGame
+        clear spaceShip;
+        clear bullets;
+
+        load("SaveGame.mat");
+
+        delete(heartPlots(:));
+        heartPlots = [];
+        for i = 1:spaceShip.getLifes
+                tmpPlot = plot(NaN,NaN, '-');
+                set(tmpPlot, 'LineWidth', SHIP_LINE_WIDTH);
+                set(tmpPlot, 'color', RED);
+                heartPlots(end + 1) = tmpPlot;
+        end
+
+        el = length(enemyPlots);
+        enemyPlots = [];
+
+        for i = 1:el
+            tempPlot = plot(NaN, NaN, '-');
+            set(tempPlot, 'LineWidth', SHIP_LINE_WIDTH);
+            set(tempPlot, 'Color', [.9, .4, .0]);
+        
+            enemyPlots(end+1) = tempPlot;
+        end
+
+        ehl = length(enemyHardPlots);
+        enemyHardPlots = [];
+
+        for i = 1:ehl
+            tempPlot = plot(NaN, NaN, '-');
+            set(tempPlot, 'LineWidth', SHIP_LINE_WIDTH);
+            set(tempPlot, 'Color', [.9, .4, .0]);
+        
+            enemyHardPlots(end+1) = tempPlot;
+        end
+
+        intro = false;
+    end
+
     function saveGame
-        save("Hej.mat", "spaceShip");
-        save("Hej.mat", "score", '-append');
+        save("SaveGame.mat", ...
+            "spaceShip", ...
+            "score", ...
+            "enemyMode", ...
+            "counter", ...
+            "counterDifficulty", ...
+            "bullets", ...
+            "enemyMode",...
+            "enemiesEz", ...
+            "enemyPlots", ...
+            "enemiesHard", ...
+            "enemyHardPlots" ...
+            );
     end
 
     function updatePlots
@@ -184,6 +236,9 @@ function playGame
 
        for i = 1:length(enemiesEz)
            currentEnemy = enemiesEz(i).getEnemy;
+           %disp(currentEnemy);
+           %disp(enemyPlots(i));
+           %disp(length(enemiesEz));
            set(enemyPlots(i), ...
                'XData', currentEnemy(1,:), ...
                'YData', currentEnemy(2,:));
@@ -222,12 +277,14 @@ function playGame
         dText = [];
 
         x = FIGURE_WIDTH / 2;
-        dText(1) = text(x, 330, "Space Invaders");
-        dText(2) = text(x, 220, "Ovladanie pomocou sipok (hore/dolu)");
-        dText(3) = text(x, 195, "Strelanie pomocou medzernika");
-        dText(4) = text(x, 100, "Pre zaciatok stlacte medzernik");
-        dText(5) = text(x, 75, "Pre ukoncenie stlacte q");
-        dText(6) = text(x, 50, "Pre zobrazenie vysledkov stlacte v");
+        dText(1) = text(x, 340, "Space Invaders");
+        dText(2) = text(x, 235, "Ovladanie pomocou sipok (hore/dolu)");
+        dText(3) = text(x, 210, "Strelanie pomocou medzernika");
+
+        dText(4) = text(x, 125, "Pre nacitanie poslednej hry stlacte l");
+        dText(5) = text(x, 100, "Pre zaciatok stlacte medzernik");
+        dText(6) = text(x, 75, "Pre ukoncenie stlacte q");
+        dText(7) = text(x, 50, "Pre zobrazenie vysledkov stlacte v");
         
 
 
@@ -290,7 +347,8 @@ function playGame
         x = FIGURE_WIDTH / 2;
         dText(1) = text(x, 330, "Paused");
         dText(2) = text(x, 220, "Pre pokračovanie stačte p");
-        dText(3) = text(x, 195, "Pre ukoncenie stlacte q");
+        dText(3) = text(x, 195, "Pre ulozenie hry stlacte s");
+        dText(4) = text(x, 170, "Pre ukoncenie stlacte q");
 
         for k = 1:length(dText)
             set(dText(k), 'HorizontalAlignment', 'Center');
@@ -313,7 +371,8 @@ function playGame
         end
     end
 
-    function showScores        
+    function showScores
+        close(figScores);
         scrsz = get(0,'ScreenSize');
         figScores = figure('Position',[(scrsz(3)-FIGURE_WIDTH)/2, ...
                                         (scrsz(4)-FIGURE_HEIGHT)/2, ...
@@ -348,6 +407,11 @@ function playGame
             set(scoreTexts(end), 'FontName', FONT);
             set(scoreTexts(end), 'FontSize',SMALL_TEXT);
         end
+
+        scoreTexts(end + 1) = text(x, 75, "Prehlad zatvorite ukoncenim okna", 'Units', 'pixels', 'Parent', AxesH);
+        set(scoreTexts(end), 'HorizontalAlignment', 'Center');
+        set(scoreTexts(end), 'FontName', FONT);
+        set(scoreTexts(end), 'FontSize',12);
         
     end
 
