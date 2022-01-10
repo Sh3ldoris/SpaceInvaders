@@ -24,9 +24,11 @@ function playGame
     counterDifficulty = 0;
     gameOver = false;
     quitGame = false;
+    scoresScreen = false;
     paused = false;
     intro = true;
     fig = [];
+    figScores = [];
     shipPlot = [];
     bulletsPlot = [];
     enemyPlots = [];
@@ -64,7 +66,6 @@ function playGame
             set(axisTitle, 'FontName', FONT,'FontSize', LARGE_TEXT);
             set(axisTitle, 'Color', GREEN);
             
-            
             hold on;
     end
 
@@ -95,7 +96,6 @@ function playGame
             delete(gcbf);
         end
         quitGame = true;
-        intro = false;
     end
 
     function key_down(src, event)
@@ -131,6 +131,11 @@ function playGame
                 if intro
                     clear spaceShip;
                     load("Hej.mat");
+                end
+
+            case 'v'
+                if intro
+                    showScores;
                 end
         end
     end
@@ -222,6 +227,7 @@ function playGame
         dText(3) = text(x, 195, "Strelanie pomocou medzernika");
         dText(4) = text(x, 100, "Pre zaciatok stlacte medzernik");
         dText(5) = text(x, 75, "Pre ukoncenie stlacte q");
+        dText(6) = text(x, 50, "Pre zobrazenie vysledkov stlacte v");
         
 
 
@@ -236,8 +242,9 @@ function playGame
         set(dText(1), 'Color', BLUE);
         set(dText(1), 'fontweight', 'bold');
 
-        set(dText(4), 'FontSize',12);
-        set(dText(5), 'FontSize',12);
+        for k = 4:length(dText)
+            set(dText(k), 'FontSize',12);
+        end
 
         while intro && ~quitGame
             pause(.25);
@@ -306,9 +313,46 @@ function playGame
         end
     end
 
+    function showScores        
+        scrsz = get(0,'ScreenSize');
+        figScores = figure('Position',[(scrsz(3)-FIGURE_WIDTH)/2, ...
+                                        (scrsz(4)-FIGURE_HEIGHT)/2, ...
+                                        FIGURE_WIDTH, ...
+                                        FIGURE_HEIGHT]);
+
+        set(figScores, 'menubar', 'none');
+        set(figScores, 'Resize', 'off');
+
+        AxesH = axes('Units', 'normalized', 'Position', [0,0,1,1], 'visible', 'off', ...
+            'YLimMode', 'manual', 'YLim',  [0, 1], ...
+            'XTick',    [],       'YTick', [], ...
+            'NextPlot', 'add', ...
+            'HitTest',  'off', ...
+            'color', AXIS_COLOR);
+
+        scoreTexts = [];
+        x = FIGURE_WIDTH / 2;
+        scoreTexts(1) = text(x, 330, 'Vysledky hracov:', 'Units', 'pixels', 'HorizontalAlignment', 'Center', 'Parent', AxesH);
+        set(scoreTexts(1), 'FontSize',TITLE_TEXT);
+        set(scoreTexts(1), 'Color', BLUE);
+
+        scoresData = scoreFileHandler.loadScoreData;
+        for i = 2:size(scoresData, 1)+1
+            currentData = scoresData(i-1,:);
+            curDate = currentData(3);
+            curName = currentData(1);
+            curScore = currentData(2);
+            currentText = sprintf("%s - %s %d bodov", curDate{:}, curName{:}, curScore{1})
+            scoreTexts(end + 1) = text(x, 310 - (27 * (i-1)), currentText, 'Units', 'pixels', 'Parent', AxesH);
+            set(scoreTexts(end), 'HorizontalAlignment', 'Center');
+            set(scoreTexts(end), 'FontName', FONT);
+            set(scoreTexts(end), 'FontSize',SMALL_TEXT);
+        end
+        
+    end
+
     function requestUserName
         username = inputdlg({'Zadajte svoje meno'}, 'Používateľské meno',[1 35], {''});
-        disp(username{1});
     end
 
     function checkForColision
@@ -532,5 +576,8 @@ function playGame
         pause(.25);
     end
     
-    scoreFileHandler.saveScoreData(username{:}, score);
+    %If user quit game in intro screen the score wont be saved
+    if ~intro
+        scoreFileHandler.saveScoreData(username{:}, score);
+    end
 end

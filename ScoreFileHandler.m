@@ -34,6 +34,18 @@ classdef ScoreFileHandler
             %Get back to the game directory
             cd ..;
         end
+
+        function data = loadScoreData(obj)
+            if ~exist(obj.SCORE_DIRECTORY, 'dir')
+                data = [];
+                cd ..;
+                return;
+            end
+            cd(obj.SCORE_DIRECTORY);
+
+            data = readcell(obj.SCORE_FILE,'Delimiter',';');
+            cd ..;
+        end
         
     end
 
