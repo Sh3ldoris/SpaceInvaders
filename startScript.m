@@ -169,6 +169,11 @@ function playGame
     end
 
     function loadGame
+        if ~isfile("SaveGame.mat")
+            f = msgbox('Žiadna hra nie je uložená!');
+            return;
+        end
+
         clear spaceShip;
         clear bullets;
 
@@ -396,16 +401,20 @@ function playGame
         set(scoreTexts(1), 'Color', BLUE);
 
         scoresData = scoreFileHandler.loadScoreData;
-        for i = 2:size(scoresData, 1)+1
-            currentData = scoresData(i-1,:);
-            curDate = currentData(3);
-            curName = currentData(1);
-            curScore = currentData(2);
-            currentText = sprintf("%s - %s %d bodov", curDate{:}, curName{:}, curScore{1})
-            scoreTexts(end + 1) = text(x, 310 - (27 * (i-1)), currentText, 'Units', 'pixels', 'Parent', AxesH);
-            set(scoreTexts(end), 'HorizontalAlignment', 'Center');
-            set(scoreTexts(end), 'FontName', FONT);
-            set(scoreTexts(end), 'FontSize',SMALL_TEXT);
+        if (~isempty(scoresData))
+            for i = 2:size(scoresData, 1)+1
+                currentData = scoresData(i-1,:);
+                curDate = currentData(3);
+                curName = currentData(1);
+                curScore = currentData(2);
+                currentText = sprintf("%s - %s %d bodov", curDate{:}, curName{:}, curScore{1})
+                scoreTexts(end + 1) = text(x, 310 - (27 * (i-1)), currentText, 'Units', 'pixels', 'Parent', AxesH);
+                set(scoreTexts(end), 'HorizontalAlignment', 'Center');
+                set(scoreTexts(end), 'FontName', FONT);
+                set(scoreTexts(end), 'FontSize',SMALL_TEXT);
+            end
+        else
+            disp('Nie');
         end
 
         scoreTexts(end + 1) = text(x, 75, "Prehlad zatvorite ukoncenim okna", 'Units', 'pixels', 'Parent', AxesH);

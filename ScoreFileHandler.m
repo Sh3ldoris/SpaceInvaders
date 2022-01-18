@@ -38,7 +38,6 @@ classdef ScoreFileHandler
         function data = loadScoreData(obj)
             if ~exist(obj.SCORE_DIRECTORY, 'dir')
                 data = [];
-                cd ..;
                 return;
             end
             cd(obj.SCORE_DIRECTORY);
